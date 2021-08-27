@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>View of API</title>
+</head>
+<body>
+
+     <hr>
+
+     <button><a href="file:/C:/Users/sahen/Desktop/NODEJS/api_games/using_api/index.html">Recharge</a></button>
+
+     <h4>List of Stocks</h4>
+     <ul id="stocks"></ul>
+
+     <hr>
+
+     <h4>Insert new Stock</h4>
+     <input type="text" name="ticker" id="ticker" placeholder="ticker">
+     <br>
+     <input type="number" name="year" id="year" placeholder="year">
+     <br>
+     <input type="number" name="price" id="price" placeholder="price">
+     <br>
+     <button type="button" onclick="createNewStock()">Create</button>
+     
+
+     <hr>
+
+     <h4>Edit Stock</h4>
+     <input type="text" name="idEdit" id="idEdit" readonly>
+     <br>
+     <input type="text" name="tickerEdit" id="tickerEdit" placeholder="ticker">
+     <br>
+     <input type="number" name="yearEdit" id="yearEdit" placeholder="year">
+     <br>
+     <input type="number" name="priceEdit" id="priceEdit" placeholder="price">
+     <br>
+     <button type="button" onclick="updateStock()">Editing</button>
+
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+
+     //create new stocks
+     function createNewStock(){
+          var tickerInput = document.getElementById("ticker");
+          var yearInput = document.getElementById("year");
+          var priceInput = document.getElementById("price");
+
+          var stock ={
+               ticker: tickerInput.value,
+               year: yearInput.value,
+               price: priceInput.value
+          }
+
+          axios.post("http://localhost:8080/stock", stock).then(response =>{
+               
+               if(response.status == 200){
+                    alert("new stock created");
+               }
+               
+          }).catch(error =>{
+               console.log(error)
+          });
+     }
+
+     //delete stock
+     function deleteStock(listItem){
+          var id = listItem.getAttribute("data-id");
+          
+          axios.delete("http://localhost:8080/stock/" + id).then(response=>{
+               alert("Stock was deleted");
+          }).catch(error =>{
+               console.log(error);
+          });
+     }
+
+     //load form to edit
+     function loadForm(listItem){
+          var id = listItem.getAttribute("data-id");
+          var ticker = listItem.getAttribute("data-ticker");
+          var year = listItem.getAttribute("data-year");
+          var price = listItem.getAttribute("data-price");
+
+          var idField = document.getElementById("idEdit");
+          idField.value = id;
+
+          var tickerField = document.getElementById("tickerEdit");
+          tickerField.value = ticker;
+
+          var yearField = document.getElementById("yearEdit");
+          yearField.value = year;
+
+          var priceField = document.getElementById("priceEdit");
+          priceField.value = price;
+     }
+
+     //atualization to edit
+     function updateStock(){
+          var idInput = document.getElementById("idEdit");
+          var tickerInput = document.getElementById("tickerEdit");
+          var yearInput = document.getElementById("yearEdit");
+          var priceInput = document.getElementById("priceEdit");
+
+          var stock ={
+               ticker: tickerInput.value,
+               year: yearInput.value,
+               price: priceInput.value
+          }
+
+          var id = idInput.value;
+
+          axios.put("http://localhost:8080/stock/"+id, stock).then(response =>{
+               
+               if(response.status == 200){
+                    alert("stock updated");
+               }
+               
+          }).catch(error =>{
+               console.log(error)
+          });
+     }
+
+
+     //list of all item of api
+     axios.get("http://localhost:8080/stocks").then(response =>{
+          var stocks = response.data;
+
+          var list = document.getElementById("stocks");
+
+          stocks.forEach(stock => {
+               var item = document.createElement("li");
+
+               item.setAttribute("data-id", stock.id);
+               item.setAttribute("data-ticker", stock.ticker);
+               item.setAttribute("data-year", stock.year);
+               item.setAttribute("data-price", stock.price);
+
+
+               item.innerHTML = stock.id + " " + stock.ticker + " - R$" + stock.price;
+
+               var deleteBtn = document.createElement("button");
+               deleteBtn.innerHTML = "Delete";
+               deleteBtn.addEventListener("click",function(){
+                    deleteStock(item);
+               });
+
+               item.appendChild(deleteBtn);
+
+               var editBtn = document.createElement("button");
+               editBtn.innerHTML = "Edit";
+               editBtn.addEventListener("click",function(){
+                    loadForm(item);
+               });
+
+               item.appendChild(editBtn);
+
+
+               list.appendChild(item);
+          });
+     }).catch(error =>{
+          console.log(error);
+     });
+</script>
+
+</html>
